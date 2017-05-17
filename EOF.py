@@ -1,3 +1,8 @@
+'''
+This program is designed for EOF analysis in climate research.
+    Author: leonidas
+    2017.5.17
+'''
 import numpy as np
 import matplotlib.pyplot as plt
 import struct
