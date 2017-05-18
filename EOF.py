@@ -13,9 +13,9 @@ from matplotlib.ticker import MultipleLocator
 from pylab import gca
 
 #================================parameters=====================================
-FI             = 0    #normalizing index, 0 for Z-score else anomaly
+FI             = 1    #normalizing index, 0 for Z-score else anomaly
 month          = 1    #January
-Eigenvector    = 1    #The largest eigenvalue
+mode           = 1    #mode
 longtitude_min = 0    #data minimun longtitude
 longtitude_max = 360  #data maximun longtitude
 latitude_min   = -90  #data minimun latitude
@@ -25,7 +25,7 @@ lonleft        = 40   #needed minimun longtitude
 lonright       = 140  #needed maximun longtitude
 latup          = 70   #needed minimun latitude
 latdown        = 20   #needed maximun latitude
-beginyear      = 1943 #the first year
+beginyear      = 1948 #the first year
 year           = 61   #total year
 NX             = int((longtitude_max-longtitude_min)/D)
 NY             = int((latitude_max-latitude_min)/D)+1
@@ -34,8 +34,8 @@ NXlim          = int((lonright-lonleft)/D+1)
 NYlim          = int((latup-latdown)/D+1)
 N              = NXlim*NYlim
 
-#================================read data======================================
-filename = 'hgt500.grd'
+#==============================reading data=====================================
+filename = '/Users/leonidas/AnacondaProjects/sx/Climatesx/copy-2/hgt500.grd'
 fileread = file(filename,'rb')
 z0 = []
 for i in range(NX*NY*NT):
@@ -82,7 +82,7 @@ sorted_data = data[:,index[0,:]]
 E,EOF = sorted_data[0,:],sorted_data[1:m+1,:]
 
 #======================time coefficients and eof matrix=========================
-tempt = -1*Eigenvector
+tempt = -1*mode
 PC = np.dot(EOF.T,f) #time coefficients
 EOF_MONTH = EOF[:,tempt]
 eof = EOF_MONTH.reshape((NXlim,NYlim))
@@ -90,7 +90,7 @@ eof = EOF_MONTH.reshape((NXlim,NYlim))
 #====variance contribution ratio and cumulative variance contribution ratio=====
 PH = E[tempt]/sum(E) #variance contribution ratio
 SS = 0
-for i in np.arange(1,Eigenvector+1):
+for i in np.arange(1,mode+1):
     SS = SS+E[-i]
 SPH = SS/sum(E)      #cumulative variance contribution ratio
 print PH,SPH
@@ -102,10 +102,15 @@ bottom_h = bottom + height - 0.23
 plt.figure(1, figsize=(9, 10))
 
 ax1 = plt.axes([left, bottom_h, width, 0.3])
-ax1.plot(PC[tempt,:])
-ax1.plot(np.zeros(year))
+x1 = np.arange(61)
+y1 = PC[tempt,:].real
+y2 = np.zeros(year)
+ax1.plot(x1,y1,'k')
+ax1.plot(x1,y2,'k')
 plt.xlim(0,year-1)
-plt.xticks(np.arange(13)*5,beginyear+np.arange(14)*5)
+plt.xticks(np.arange(13)*5,beginyear-5+np.arange(14)*5)
+ax1.fill_between(x1, y1, y2, where=y2 >= y1, facecolor='blue', interpolate=True)
+ax1.fill_between(x1, y1, y2, where=y2 <= y1, facecolor='red', interpolate=True)
 ax = gca()
 ax.xaxis.set_major_locator(MultipleLocator(5))
 ax.xaxis.set_minor_locator(MultipleLocator(1))
@@ -147,8 +152,9 @@ plt.colorbar(pic,shrink = 1,orientation = 'horizontal',anchor = (left,bottom+2))
 #plt.colorbar(pic,shrink = 1,ticks = tic,orientation = 'horizontal',anchor = (left,bottom+2))
 #plt.clabel(pic, inline=1, fontsize=10,fmt = '%1.1f')
 
-#if FI==0:
-#    plt.savefig('Q1.pdf')
-#else:
-#    plt.savefig('Q1jp.pdf')
+if FI==0:
+    savename = '/Users/leonidas/AnacondaProjects/sx/Climatesx/copy-2/Q'+str(mode)+'.pdf'
+else:
+    savename = '/Users/leonidas/AnacondaProjects/sx/Climatesx/copy-2/Q'+str(mode)+'jp.pdf'
+plt.savefig(savename)
 plt.show()
